@@ -28,7 +28,7 @@ def poll():
             # call the bash script that will update the repo and check
             # for changes. If there's a change, it will drop a .commit_id file
             # with the latest commit in the current working directory
-            subprocess.check_output(["./update_repo.sh", args.repo])
+            subprocess.check_output(["update_repo.sh", args.repo], shell=True)
         except subprocess.CalledProcessError as e:
             raise Exception("Could not update and check repository. Reason: %s" % e.output)
 

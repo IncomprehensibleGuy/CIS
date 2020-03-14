@@ -124,8 +124,7 @@ def serve():
     server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
     response = helpers.communicate(server.dispatcher_server["host"],
                                    int(server.dispatcher_server["port"]),
-                                   b"register:%s:%s" %
-                                   (runner_host, runner_port))
+                                   bytes("register:%s:%s" % (runner_host, runner_port), encoding='utf-8'))
     response = response.decode('utf-8')
 
     if response != "OK":
