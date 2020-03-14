@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e8dda277-3c61-4ba6-b5af-986794d1fbae" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -56,7 +55,7 @@
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
             <state>
-              <caret column="5" selection-start-column="5" selection-end-column="5" />
+              <caret column="6" selection-start-column="6" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -221,7 +220,14 @@
       <option name="project" value="LOCAL" />
       <updated>1584182982611</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Everything is working fun commit">
+      <created>1584183233644</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1584183233644</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TodoView">
@@ -365,7 +371,7 @@
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state>
-          <caret column="5" selection-start-column="5" selection-end-column="5" />
+          <caret column="6" selection-start-column="6" selection-end-column="6" />
         </state>
       </provider>
     </entry>
