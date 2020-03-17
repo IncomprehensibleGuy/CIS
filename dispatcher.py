@@ -112,9 +112,10 @@ def serve():
                         action="store")
     args = parser.parse_args()
 
+    server_host, server_port = args.host, int(args.port)
     # Create the server
-    server = ThreadingTCPServer((args.host, int(args.port)), DispatcherHandler)
-    print('serving on %s:%s' % (args.host, int(args.port)))
+    server = ThreadingTCPServer((server_host, server_port), DispatcherHandler)
+    print('serving on %s:%s' % (server_host, server_port))
     # Create a thread to check the runner pool
     def runner_checker(server):
         def manage_commit_lists(runner):

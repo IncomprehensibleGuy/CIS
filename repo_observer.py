@@ -1,34 +1,23 @@
-import argparse
 import os
-import re
 import socket
-import socketserver
 import subprocess
-import sys
 import time
 
 import helpers
 
 
 def poll():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dispatcher-server",
-                        help="dispatcher host:port, by default it uses localhost:8888",
-                        default="localhost:8888",
-                        action="store")
-    parser.add_argument("repo",
-                        metavar="REPO",
-                        type=str,
-                        help="path to the repository this will observe")
-    args = parser.parse_args()
-    dispatcher_host, dispatcher_port = args.dispatcher_server.split(":")
+    # settings
+    dispatcher_host = 'localhost'
+    dispatcher_port = 8888
+    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'  # Paste path to the repo on your machine
 
     while True:
         try:
             # call the bash script that will update the repo and check
             # for changes. If there's a change, it will drop a .commit_id file
             # with the latest commit in the current working directory
-            subprocess.check_output(["update_repo.sh", args.repo], shell=True)
+            subprocess.check_output(["update_repo.sh", observing_repo], shell=True)
         except subprocess.CalledProcessError as e:
             raise Exception("Could not update and check repository. Reason: %s" % e.output)
 

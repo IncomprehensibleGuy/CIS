@@ -36,3 +36,5 @@ if [ $NEW_COMMIT_ID != $COMMIT_ID ]; then
   popd 1> /dev/null
   echo $NEW_COMMIT_ID > .commit_id
 fi
+
+sleep 2
