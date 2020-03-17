@@ -7,10 +7,10 @@ import helpers
 
 
 def poll():
-    # settings
+    # Settings
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
-    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'  # Paste path to the repo on your machine
+    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs' # Paste path to the repo on your machine
 
     while True:
         try:

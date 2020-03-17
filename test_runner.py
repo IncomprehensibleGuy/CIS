@@ -94,6 +94,11 @@ def serve():
                         help="path to the repository this will observe")
     args = parser.parse_args()
 
+
+    print(' port=', args.port, '\n', 'host=', args.host, '\n', 'repo=', args.repo,'\n')
+
+
+
     runner_host = args.host
     runner_port = None
     tries = 0
@@ -121,6 +126,10 @@ def serve():
     server.repo_folder = args.repo
 
     dispatcher_host, dispatcher_port = args.dispatcher_server.split(":")
+    print('dispatcher_host=', dispatcher_host, '\n', 'dispatcher_port=', dispatcher_port)
+
+
+
     server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
     response = helpers.communicate(server.dispatcher_server["host"],
                                    int(server.dispatcher_server["port"]),

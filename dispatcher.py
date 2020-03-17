@@ -1,4 +1,3 @@
-import argparse
 import os
 import re
 import socket
@@ -101,18 +100,10 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
 
 
 def serve():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host",
-                        help="dispatcher's host, by default it uses localhost",
-                        default="localhost",
-                        action="store")
-    parser.add_argument("--port",
-                        help="dispatcher's port, by default it uses 8888",
-                        default=8888,
-                        action="store")
-    args = parser.parse_args()
+    # Settings
+    server_host = 'localhost'
+    server_port = 8888
 
-    server_host, server_port = args.host, int(args.port)
     # Create the server
     server = ThreadingTCPServer((server_host, server_port), DispatcherHandler)
     print('serving on %s:%s' % (server_host, server_port))
