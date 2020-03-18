@@ -3,7 +3,7 @@ import os
 
 def main():
     repo_clone_runner_path = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_runner'
-    repo_clone_obs_path = 'C:/Users/Greg/DesktopProjects/CIS/monitoring_repo/repo_clone_obs'
+    repo_clone_obs_path = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
     start_dispatcher_command = 'dispatcher.py'
     start_test_runner_command = 'test_runner.py ' + repo_clone_runner_path
