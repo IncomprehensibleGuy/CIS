@@ -14,7 +14,7 @@ def dispatch_tests(server, commit_id):
     while True:
         print("trying to dispatch to runners")
         for runner in server.runners:
-            response = helpers.communicate(runner["host"], int(runner["port"]), b"runtest:%s" % commit_id)
+            response = helpers.communicate(runner["host"], int(runner["port"]), ("runtest:"+commit_id).encode())
             response = response.decode('utf-8')
 
             if response == "OK":
@@ -149,7 +149,7 @@ def serve():
         # interrupt the program with Ctrl+C or Cmd+C
         server.serve_forever()
     except (KeyboardInterrupt, Exception):
-        # if any exception occurs, kill the thread
+        # If any exception occurs, kill the thread
         server.dead = True
         runner_heartbeat.join()
         redistributor.join()

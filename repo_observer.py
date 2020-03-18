@@ -10,7 +10,8 @@ def poll():
     # Settings
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
-    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs' # Paste path to the repo on your machine
+    # Paste path to the repo on your machine
+    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
     while True:
         try:
@@ -32,11 +33,11 @@ def poll():
                 raise Exception("Could not communicate with dispatcher server: %s" % e)
 
             if response == "OK":
-                # Dispatcher is present, let's send it a test
+                # Dispatcher is present, let's   send it a test
                 commit = ""
                 with open(".commit_id", "r") as f:
                     commit = f.readline()
-                response = helpers.communicate(dispatcher_host, int(dispatcher_port), b"dispatch:%s" % commit)
+                response = helpers.communicate(dispatcher_host, int(dispatcher_port), ("dispatch:" + commit).encode())
                 response = response.decode('utf-8')
 
                 if response != "OK":
