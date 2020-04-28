@@ -1,34 +1,24 @@
-import argparse
 import os
-import re
 import socket
-import socketserver
 import subprocess
-import sys
 import time
 
 import helpers
 
 
 def poll():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dispatcher-server",
-                        help="dispatcher host:port, by default it uses localhost:8888",
-                        default="localhost:8888",
-                        action="store")
-    parser.add_argument("repo",
-                        metavar="REPO",
-                        type=str,
-                        help="path to the repository this will observe")
-    args = parser.parse_args()
-    dispatcher_host, dispatcher_port = args.dispatcher_server.split(":")
+    # Settings
+    dispatcher_host = 'localhost'
+    dispatcher_port = 8888
+    # Paste path to the repo on your machine
+    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
     while True:
         try:
             # call the bash script that will update the repo and check
             # for changes. If there's a change, it will drop a .commit_id file
             # with the latest commit in the current working directory
-            subprocess.check_output(["update_repo.sh", args.repo], shell=True)
+            subprocess.check_output(["update_repo.sh", observing_repo], shell=True)
         except subprocess.CalledProcessError as e:
             raise Exception("Could not update and check repository. Reason: %s" % e.output)
 
@@ -43,11 +33,11 @@ def poll():
                 raise Exception("Could not communicate with dispatcher server: %s" % e)
 
             if response == "OK":
-                # Dispatcher is present, let's send it a test
+                # Dispatcher is present, let's   send it a test
                 commit = ""
                 with open(".commit_id", "r") as f:
                     commit = f.readline()
-                response = helpers.communicate(dispatcher_host, int(dispatcher_port), b"dispatch:%s" % commit)
+                response = helpers.communicate(dispatcher_host, int(dispatcher_port), ("dispatch:" + commit).encode())
                 response = response.decode('utf-8')
 
                 if response != "OK":
@@ -58,7 +48,7 @@ def poll():
                 # Something wrong happened to the dispatcher
                 raise Exception("Could not dispatch the test: %s" %
                 response)
-        time.sleep(5)
+        time.sleep(12)
 
 
 if __name__ == "__main__":

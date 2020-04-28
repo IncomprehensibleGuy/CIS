@@ -1,4 +1,3 @@
-import argparse
 import os
 import re
 import socket
@@ -15,7 +14,7 @@ def dispatch_tests(server, commit_id):
     while True:
         print("trying to dispatch to runners")
         for runner in server.runners:
-            response = helpers.communicate(runner["host"], int(runner["port"]), b"runtest:%s" % commit_id)
+            response = helpers.communicate(runner["host"], int(runner["port"]), ("runtest:"+commit_id).encode())
             response = response.decode('utf-8')
 
             if response == "OK":
@@ -87,7 +86,7 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
             # 3 is the number of ":" in the sent command
             remaining_buffer = self.BUF_SIZE - (len(command) + len(commit_id) + len(results[1]) + 3)
             if length_msg > remaining_buffer:
-                self.data += self.request.recv(length_msg - remaining_buffer).strip()
+                self.data += self.request.recv(length_msg - remaining_buffer).decode('utf-8').strip()
             del self.server.dispatched_commits[commit_id]
             if not os.path.exists("test_results"):
                 os.makedirs("test_results")
@@ -96,25 +95,19 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
                 data = "\n".join(data)
                 f.write(data)
             self.request.sendall(b"OK")
+            print("")
         else:
             self.request.sendall(b"Invalid command")
 
 
 def serve():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host",
-                        help="dispatcher's host, by default it uses localhost",
-                        default="localhost",
-                        action="store")
-    parser.add_argument("--port",
-                        help="dispatcher's port, by default it uses 8888",
-                        default=8888,
-                        action="store")
-    args = parser.parse_args()
+    # Settings
+    server_host = 'localhost'
+    server_port = 8888
 
     # Create the server
-    server = ThreadingTCPServer((args.host, int(args.port)), DispatcherHandler)
-    print('serving on %s:%s' % (args.host, int(args.port)))
+    server = ThreadingTCPServer((server_host, server_port), DispatcherHandler)
+    print('serving on %s:%s' % (server_host, server_port))
     # Create a thread to check the runner pool
     def runner_checker(server):
         def manage_commit_lists(runner):
@@ -157,7 +150,7 @@ def serve():
         # interrupt the program with Ctrl+C or Cmd+C
         server.serve_forever()
     except (KeyboardInterrupt, Exception):
-        # if any exception occurs, kill the thread
+        # If any exception occurs, kill the thread
         server.dead = True
         runner_heartbeat.join()
         redistributor.join()
