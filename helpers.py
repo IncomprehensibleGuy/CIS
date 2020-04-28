@@ -1,7 +1,7 @@
 import socket
 
 
-def communicate(host, port, request):
+def communicate(host, port, request) -> bytes:
     ''' Helper-method to communicate repo_observer, dispatcher and test_runner
         :returns bytes object response
     '''

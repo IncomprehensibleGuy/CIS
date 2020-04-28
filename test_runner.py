@@ -41,7 +41,7 @@ class TestHandler(socketserver.BaseRequestHandler):
             self.server.last_communication = time.time()
             self.request.sendall(b"pong")
         elif command == "runtest":
-            print("got runtest command: am I busy? %s" % self.server.busy)
+            print(f"got runtest command: am I busy? {self.server.busy}")
             if self.server.busy:
                 self.request.sendall(b"BUSY")
             else:
@@ -57,20 +57,23 @@ class TestHandler(socketserver.BaseRequestHandler):
 
     def run_tests(self, commit_id, repo_folder):
         # update repo
-        output = subprocess.check_output(["./test_runner_script.sh", repo_folder, commit_id])
+        output = subprocess.check_output(["test_runner_script.sh", repo_folder, commit_id], shell=True)
         print(output)
         # run the tests
         test_folder = os.path.join(repo_folder, "tests")
         suite = unittest.TestLoader().discover(test_folder)
-        result_file = open("results", "w")
+        result_file = open("results.txt", "a")
+        t = time.strftime("%H:%M:%S  %d.%m.%Y")
+        result_file.write(f"Test started ad {t}")
         unittest.TextTestRunner(result_file).run(suite)
         result_file.close()
-        result_file = open("results", "r")
+        result_file = open("results.txt", "r")
         # give the dispatcher the results
         output = result_file.read()
         helpers.communicate(self.server.dispatcher_server["host"],
                             int(self.server.dispatcher_server["port"]),
-                            b"results:%s:%s:%s" % (commit_id, len(output), output))
+                            f"results:{commit_id}:{len(output)}:{output}".encode())
+        result_file.close()
 
 
 def serve():
@@ -98,7 +101,6 @@ def serve():
     print(' port=', args.port, '\n', 'host=', args.host, '\n', 'repo=', args.repo,'\n')
 
 
-
     runner_host = args.host
     runner_port = None
     tries = 0
@@ -119,7 +121,7 @@ def serve():
                 else:
                     raise e
         else:
-            raise Exception("Could not bind to ports in range %s-%s" % (range_start, range_start+tries))
+            raise Exception(f"Could not bind to ports in range {range_start}-{range_start+tries}")
     else:
         runner_port = int(args.port)
         server = ThreadingTCPServer((runner_host, runner_port), TestHandler)
@@ -129,11 +131,10 @@ def serve():
     print('dispatcher_host=', dispatcher_host, '\n', 'dispatcher_port=', dispatcher_port)
 
 
-
     server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
     response = helpers.communicate(server.dispatcher_server["host"],
                                    int(server.dispatcher_server["port"]),
-                                   bytes("register:%s:%s" % (runner_host, runner_port), encoding='utf-8'))
+                                   bytes(f"register:{runner_host}:{runner_port}", encoding='utf-8'))
     response = response.decode('utf-8')
 
     if response != "OK":
