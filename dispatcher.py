@@ -86,7 +86,7 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
             # 3 is the number of ":" in the sent command
             remaining_buffer = self.BUF_SIZE - (len(command) + len(commit_id) + len(results[1]) + 3)
             if length_msg > remaining_buffer:
-                self.data += self.request.recv(length_msg - remaining_buffer).strip()
+                self.data += self.request.recv(length_msg - remaining_buffer).decode('utfs-8').strip()
             del self.server.dispatched_commits[commit_id]
             if not os.path.exists("test_results"):
                 os.makedirs("test_results")
