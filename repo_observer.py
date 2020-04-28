@@ -48,7 +48,7 @@ def poll():
                 # Something wrong happened to the dispatcher
                 raise Exception("Could not dispatch the test: %s" %
                 response)
-        time.sleep(5)
+        time.sleep(12)
 
 
 if __name__ == "__main__":
