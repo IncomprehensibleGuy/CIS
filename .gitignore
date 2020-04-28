@@ -1,2 +1,5 @@
 .idea
 __pycache__
+.commit_id
+results.txt
+test_results
