@@ -1,5 +1,5 @@
-../.idea
-../__pycache__
+/.idea
+/__pycache__
+/test_results
 .commit_id
 results.txt
-test_results
