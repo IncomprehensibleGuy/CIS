@@ -13,17 +13,15 @@ def dispatch_tests(server, commit_id):
     # NOTE: usually we don't run this forever
     while True:
         print("trying to dispatch to runners")
-        for runner in server.runners:
-            response = helpers.communicate(runner["host"], int(runner["port"]), ("runtest:"+commit_id).encode())
-            response = response.decode('utf-8')
 
+        for runner in server.runners:
+            response = helpers.communicate(runner["host"], runner["port"], ("runtest:"+commit_id).encode())
+            response = response.decode('utf-8')
             if response == "OK":
                 print("adding id %s" % commit_id)
                 server.dispatched_commits[commit_id] = runner
-
                 if commit_id in server.pending_commits:
                     server.pending_commits.remove(commit_id)
-
                 return
 
         time.sleep(2)
@@ -43,6 +41,11 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
     and handle their requests and test results
     """
 
+    # ()	Группирует выражение и возвращает найденный текст
+    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
+    # +	    1 и более вхождений шаблона слева
+    # .	    Один любой символ, кроме новой строки \n
+    # *	    0 и более вхождений шаблона слева
     command_re = re.compile(r"(\w+)(:.+)*")
     BUF_SIZE = 1024
 
@@ -50,6 +53,10 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(self.BUF_SIZE).decode('utf-8').strip()
         command_groups = self.command_re.match(self.data)
+
+        ## del
+        print(command_groups)
+        ## del
 
         if not command_groups:
             self.request.sendall(b"Invalid command")
@@ -65,7 +72,7 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
             print("register")
             address = command_groups.group(2)
             host, port = re.findall(r":(\w*)", address)
-            runner = {"host": host, "port":port}
+            runner = {"host": host, "port": int(port)}
             self.server.runners.append(runner)
             self.request.sendall(b"OK")
         elif command == "dispatch":
@@ -124,7 +131,7 @@ def serve():
             for runner in dispatcher_server.runners:
                 #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                    response = helpers.communicate(runner['host'], int(runner['port']), b'ping')
+                    response = helpers.communicate(runner['host'], runner['port'], b'ping')
                     response = response.decode('utf-8')
 
                     if response != 'pong':
@@ -148,8 +155,7 @@ def serve():
     try:
         runner_heartbeat.start()
         redistributor.start()
-        # Activate the server; this will keep running until you
-        # interrupt the program with Ctrl+C or Cmd+C
+        # Activate the server; this will keep running until interrupt ( Ctrl+C or Cmd+C )
         dispatcher_server.serve_forever()
     except (KeyboardInterrupt, Exception):
         # If any exception occurs, kill the thread

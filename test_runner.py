@@ -13,10 +13,12 @@ import helpers
 
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    dispatcher_server = None # Holds the dispatcher server host/port information
+    repo_folder = None
+    dispatcher_host = None # Holds the dispatcher server host/port information
+    dispatcher_port = None
     last_communication = None # Keeps track of last communication from dispatcher
     busy = False # Status flag
-    dead = False # Status flag
+    serving = True # Status flag
 
 
 class TestHandler(socketserver.BaseRequestHandler):
@@ -24,6 +26,11 @@ class TestHandler(socketserver.BaseRequestHandler):
     The RequestHandler class for our server.
     """
 
+    # ()	Группирует выражение и возвращает найденный текст
+    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
+    # +	    1 и более вхождений шаблона слева
+    # .	    Один любой символ, кроме новой строки \n
+    # *	    0 и более вхождений шаблона слева
     command_re = re.compile(r"(\w+)(:.+)*")
 
     def handle(self):
@@ -49,17 +56,16 @@ class TestHandler(socketserver.BaseRequestHandler):
                 print("running")
                 commit_id = command_groups.group(2)[1:]
                 self.server.busy = True
-                self.run_tests(commit_id,
-                               self.server.repo_folder)
+                self.run_tests(commit_id, self.server.repo_folder)
                 self.server.busy = False
         else:
             self.request.sendall(b"Invalid command")
 
     def run_tests(self, commit_id, repo_folder):
-        # update repo
+        # Update repo
         output = subprocess.check_output(["test_runner_script.sh", repo_folder, commit_id], shell=True)
         print(output)
-        # run the tests
+        # Run the tests
         test_folder = os.path.join(repo_folder, "tests")
         suite = unittest.TestLoader().discover(test_folder)
         result_file = open("results.txt", "a")
@@ -68,10 +74,9 @@ class TestHandler(socketserver.BaseRequestHandler):
         unittest.TextTestRunner(result_file).run(suite)
         result_file.close()
         result_file = open("results.txt", "r")
-        # give the dispatcher the results
+        # Give the dispatcher the results
         output = result_file.read()
-        helpers.communicate(self.server.dispatcher_server["host"],
-                            int(self.server.dispatcher_server["port"]),
+        helpers.communicate(self.server.dispatcher_host, self.server.dispatcher_port,
                             f"results:{commit_id}:{len(output)}:{output}".encode())
         result_file.close()
 
@@ -126,29 +131,26 @@ def serve():
     else:
         test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
     test_runner_server.repo_folder = args.repo
-    test_runner_server.dispatcher_server = {"host": dispatcher_host, "port": dispatcher_port}
+    test_runner_server.dispatcher_host = dispatcher_host
+    test_runner_server.dispatcher_port = dispatcher_port
     print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
-    #
+    # Try to register test runner with dispatcher
     response = helpers.communicate(dispatcher_host, dispatcher_port,
                                    bytes(f"register:{test_runner_host}:{test_runner_port}", encoding='utf-8'))
     response = response.decode('utf-8')
-
     if response != "OK":
         raise Exception("Can't register with dispatcher!")
 
     def dispatcher_checker(server):
-        # Checks if the dispatcher went down. If it is down, we will shut down
-        # if since the dispatcher may not have the same host/port
-        # when it comes back up.
-        while not server.dead:
+        # Checks if the dispatcher went down.
+        # If it is down, we will shut down if since the dispatcher may not have the same host/port when it comes back up.
+        while server.serving:
             time.sleep(5)
             if (time.time() - server.last_communication) > 10:
                 try:
-                    response = helpers.communicate(
-                                       server.dispatcher_server["host"],
-                                       int(server.dispatcher_server["port"]),
-                                       b"status")
+                    response = helpers.communicate(server.dispatcher_host, int(server.dispatcher_port),
+                                                   b"status")
                     response = response.decode('utf-8')
 
                     if response != "OK":
@@ -156,19 +158,18 @@ def serve():
                         server.shutdown()
                         return
                 except socket.error as e:
-                    print("Can't communicate with dispatcher: %s" % e)
+                    print(f"Can't communicate with dispatcher: {e}")
                     server.shutdown()
                     return
 
     t = threading.Thread(target=dispatcher_checker, args=(test_runner_server,))
     try:
         t.start()
-        # Activate the server; this will keep running until you
-        # interrupt the program with Ctrl-C
+        # Activate the server; this will keep running until interrupt ( Ctrl-C )
         test_runner_server.serve_forever()
     except (KeyboardInterrupt, Exception):
-        # if any exception occurs, kill the thread
-        test_runner_server.dead = True
+        # If any exception occurs, kill the thread
+        test_runner_server.serving = False
         t.join()
 
 
