@@ -12,7 +12,7 @@ def push_commit_to_dispatcher():
     observing_repo_clone = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
     print("started from bash script!")
-    '''
+
     # Call the bash script that will update the repo and check for changes.
     # If there's a change, it will drop a .commit_id file with the latest commit in the current working dir.
     try:
@@ -20,6 +20,7 @@ def push_commit_to_dispatcher():
     except subprocess.CalledProcessError as e:
         raise Exception(f'Could not update and check repository. Reason: {e.output}')
 
+    '''
     if os.path.isfile('.commit_id'):
         # We have a change -> execute the tests
         # First, check the status of the dispatcher server to see if we can send the tests
