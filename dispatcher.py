@@ -102,12 +102,13 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
 
 def serve():
     # Settings
-    server_host = 'localhost'
-    server_port = 8888
+    dispatcher_host = 'localhost'
+    dispatcher_port = 8888
 
     # Create the server
-    server = ThreadingTCPServer((server_host, server_port), DispatcherHandler)
-    print('serving on %s:%s' % (server_host, server_port))
+    server = ThreadingTCPServer((dispatcher_host, dispatcher_port), DispatcherHandler)
+    print('serving on %s:%s' % (dispatcher_host, dispatcher_port))
+
     # Create a thread to check the runner pool
     def runner_checker(server):
         def manage_commit_lists(runner):
@@ -132,7 +133,7 @@ def serve():
                 except socket.error as e:
                     manage_commit_lists(runner)
 
-    # this will kick off tests that failed
+    # This will kick off tests that failed
     def redistribute(server):
         while not server.dead:
             for commit in server.pending_commits:
