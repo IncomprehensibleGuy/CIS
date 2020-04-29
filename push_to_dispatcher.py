@@ -1,12 +1,11 @@
 import os
 import socket
 import subprocess
-import time
 
 import helpers
 
 
-def push_commit_to_tests():
+def push_commit_to_dispatcher():
     # Settings
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
@@ -30,9 +29,9 @@ def push_commit_to_tests():
 
         if response == 'OK':
             # Dispatcher is present -> send it a test
-            commit = ''
-            with open('.commit_id', 'r') as f:
-                commit = f.readline()
+            commit_file = open('.commit_id', 'r')
+            commit = commit_file.readline()
+            commit_file.close()
             response = helpers.communicate(dispatcher_host, dispatcher_port, ('dispatch:' + commit).encode())
             response = response.decode('utf-8')
             if response != 'OK': raise Exception(f'Could not dispatch commit: {response}')
@@ -43,4 +42,4 @@ def push_commit_to_tests():
 
 
 if __name__ == "__main__":
-    push_commit_to_tests()
+    push_commit_to_dispatcher()
