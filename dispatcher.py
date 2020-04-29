@@ -31,7 +31,7 @@ def dispatch_tests(server, commit_id):
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     runners = [] # Keeps track of test runner pool
-    dead = False # Indicate to other threads that we are no longer running
+    serving = True # Indicate to other threads whether dispatcher running or not
     dispatched_commits = {} # Keeps track of commits we dispatched
     pending_commits = [] # Keeps track of commits we have yet to dispatch
 
@@ -105,54 +105,55 @@ def serve():
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
 
-    # Create the server
-    server = ThreadingTCPServer((dispatcher_host, dispatcher_port), DispatcherHandler)
-    print('serving on %s:%s' % (dispatcher_host, dispatcher_port))
+    # Create the dispatcher server
+    dispatcher_server = ThreadingTCPServer((dispatcher_host, dispatcher_port), DispatcherHandler)
+    print(f'Dispatcher is serving on {dispatcher_host}:{dispatcher_port}')
 
     # Create a thread to check the runner pool
-    def runner_checker(server):
+    def runner_checker(dispatcher_server):
         def manage_commit_lists(runner):
-            for commit, assigned_runner in server.dispatched_commits.iteritems():
+            for commit, assigned_runner in dispatcher_server.dispatched_commits.iteritems():
                 if assigned_runner == runner:
-                    del server.dispatched_commits[commit]
-                    server.pending_commits.append(commit)
+                    del dispatcher_server.dispatched_commits[commit]
+                    dispatcher_server.pending_commits.append(commit)
                     break
-            server.runners.remove(runner)
+            dispatcher_server.runners.remove(runner)
 
-        while not server.dead:
+        while dispatcher_server.serving:
             time.sleep(1)
-            for runner in server.runners:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            for runner in dispatcher_server.runners:
+                #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                    response = helpers.communicate(runner["host"], int(runner["port"]), b"ping")
+                    response = helpers.communicate(runner['host'], int(runner['port']), b'ping')
                     response = response.decode('utf-8')
 
-                    if response != "pong":
-                        print("removing runner %s" % runner)
+                    if response != 'pong':
+                        print(f'removing runner {runner}')
                         manage_commit_lists(runner)
                 except socket.error as e:
                     manage_commit_lists(runner)
 
     # This will kick off tests that failed
     def redistribute(server):
-        while not server.dead:
+        while server.serving:
             for commit in server.pending_commits:
-                print("running redistribute")
+                print('running redistribute')
                 print(server.pending_commits)
                 dispatch_tests(server, commit)
                 time.sleep(5)
 
-    runner_heartbeat = threading.Thread(target=runner_checker, args=(server,))
-    redistributor = threading.Thread(target=redistribute, args=(server,))
+    # what a hell is that?
+    runner_heartbeat = threading.Thread(target=runner_checker, args=(dispatcher_server,))
+    redistributor = threading.Thread(target=redistribute, args=(dispatcher_server,))
     try:
         runner_heartbeat.start()
         redistributor.start()
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl+C or Cmd+C
-        server.serve_forever()
+        dispatcher_server.serve_forever()
     except (KeyboardInterrupt, Exception):
         # If any exception occurs, kill the thread
-        server.dead = True
+        dispatcher_server.serving = False
         runner_heartbeat.join()
         redistributor.join()
 

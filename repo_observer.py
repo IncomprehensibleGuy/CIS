@@ -10,15 +10,16 @@ def poll():
     # Settings
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
+
     # Paste path to the repo on your machine
-    observing_repo = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
+    observing_repo_clone = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
     while True:
         try:
             # call the bash script that will update the repo and check
             # for changes. If there's a change, it will drop a .commit_id file
             # with the latest commit in the current working directory
-            subprocess.check_output(["update_repo.sh", observing_repo], shell=True)
+            subprocess.check_output(["update_repo.sh", observing_repo_clone], shell=True)
         except subprocess.CalledProcessError as e:
             raise Exception("Could not update and check repository. Reason: %s" % e.output)
 

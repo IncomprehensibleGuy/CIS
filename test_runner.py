@@ -77,15 +77,17 @@ class TestHandler(socketserver.BaseRequestHandler):
 
 
 def serve():
+    # Settings
     range_start = 8900
 
+    # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--host",
                         help="runner's host, by default it uses localhost",
                         default="localhost",
                         action="store")
     parser.add_argument("--port",
-                        help="runner's port, by default it uses values >=%s" % range_start,
+                        help=f"runner's port, by default it uses values >={range_start}",
                         action="store")
     parser.add_argument("--dispatcher-server",
                         help="dispatcher host:port, by default it uses localhost:8888",
@@ -97,44 +99,39 @@ def serve():
                         help="path to the repository this will observe")
     args = parser.parse_args()
 
+    # Get servers parameters from command line parser
+    test_runner_host = args.host
+    test_runner_port = args.port
+    dispatcher_host = args.dispatcher_server.split(":")[0]
+    dispatcher_port = int(args.dispatcher_server.split(":")[1])
+    print(f'Got dispatcher server info - {dispatcher_host}:{dispatcher_port}')
 
-    print(' port=', args.port, '\n', 'host=', args.host, '\n', 'repo=', args.repo,'\n')
-
-
-    runner_host = args.host
-    runner_port = None
+    # Create the test_runner server
     tries = 0
-
-    if not args.port:
-        runner_port = range_start
+    if not test_runner_port:
+        test_runner_port = range_start
         while tries < 100:
             try:
-                server = ThreadingTCPServer((runner_host, runner_port), TestHandler)
-                print(server)
-                print(runner_port)
+                test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
                 break
             except socket.error as e:
                 if e.errno == errno.EADDRINUSE:
                     tries += 1
-                    runner_port = runner_port + tries
+                    test_runner_port += tries
                     continue
                 else:
                     raise e
         else:
             raise Exception(f"Could not bind to ports in range {range_start}-{range_start+tries}")
     else:
-        runner_port = int(args.port)
-        server = ThreadingTCPServer((runner_host, runner_port), TestHandler)
-    server.repo_folder = args.repo
+        test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
+    test_runner_server.repo_folder = args.repo
+    test_runner_server.dispatcher_server = {"host": dispatcher_host, "port": dispatcher_port}
+    print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
-    dispatcher_host, dispatcher_port = args.dispatcher_server.split(":")
-    print('dispatcher_host=', dispatcher_host, '\n', 'dispatcher_port=', dispatcher_port)
-
-
-    server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
-    response = helpers.communicate(server.dispatcher_server["host"],
-                                   int(server.dispatcher_server["port"]),
-                                   bytes(f"register:{runner_host}:{runner_port}", encoding='utf-8'))
+    #
+    response = helpers.communicate(dispatcher_host, dispatcher_port,
+                                   bytes(f"register:{test_runner_host}:{test_runner_port}", encoding='utf-8'))
     response = response.decode('utf-8')
 
     if response != "OK":
@@ -163,15 +160,15 @@ def serve():
                     server.shutdown()
                     return
 
-    t = threading.Thread(target=dispatcher_checker, args=(server,))
+    t = threading.Thread(target=dispatcher_checker, args=(test_runner_server,))
     try:
         t.start()
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
-        server.serve_forever()
+        test_runner_server.serve_forever()
     except (KeyboardInterrupt, Exception):
         # if any exception occurs, kill the thread
-        server.dead = True
+        test_runner_server.dead = True
         t.join()
 
 
