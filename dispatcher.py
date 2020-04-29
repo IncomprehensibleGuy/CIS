@@ -54,10 +54,6 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
         self.data = self.request.recv(self.BUF_SIZE).decode('utf-8').strip()
         command_groups = self.command_re.match(self.data)
 
-        ## del
-        print(command_groups)
-        ## del
-
         if not command_groups:
             self.request.sendall(b"Invalid command")
             return
