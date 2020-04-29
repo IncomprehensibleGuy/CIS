@@ -11,6 +11,8 @@ def push_commit_to_dispatcher():
     dispatcher_port = 8888
     observing_repo_clone = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
 
+    print("started from bash script!")
+    '''
     # Call the bash script that will update the repo and check for changes.
     # If there's a change, it will drop a .commit_id file with the latest commit in the current working dir.
     try:
@@ -39,7 +41,7 @@ def push_commit_to_dispatcher():
         else:
             # Something wrong happened to the dispatcher
             raise Exception(f"Could not dispatch the test: {response}")
-
+    '''
 
 if __name__ == "__main__":
     push_commit_to_dispatcher()
