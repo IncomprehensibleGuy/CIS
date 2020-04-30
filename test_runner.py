@@ -72,7 +72,7 @@ class TestHandler(socketserver.BaseRequestHandler):
         output = result_file.read()
         helpers.communicate(self.server.dispatcher_server["host"],
                             int(self.server.dispatcher_server["port"]),
-                            f"results:{commit_id}:{len(output)}:{output}".encode())
+                            f"results:{commit_id}:{len(output)}:{output}")
         result_file.close()
 
 
@@ -134,8 +134,7 @@ def serve():
     server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
     response = helpers.communicate(server.dispatcher_server["host"],
                                    int(server.dispatcher_server["port"]),
-                                   bytes(f"register:{runner_host}:{runner_port}", encoding='utf-8'))
-    response = response.decode('utf-8')
+                                   f"register:{runner_host}:{runner_port}")
 
     if response != "OK":
         raise Exception("Can't register with dispatcher!")
@@ -151,8 +150,7 @@ def serve():
                     response = helpers.communicate(
                                        server.dispatcher_server["host"],
                                        int(server.dispatcher_server["port"]),
-                                       b"status")
-                    response = response.decode('utf-8')
+                                       "status")
 
                     if response != "OK":
                         print("Dispatcher is no longer functional")

@@ -14,8 +14,7 @@ def dispatch_tests(server, commit_id):
     while True:
         print("trying to dispatch to runners")
         for runner in server.runners:
-            response = helpers.communicate(runner["host"], int(runner["port"]), ("runtest:"+commit_id).encode())
-            response = response.decode('utf-8')
+            response = helpers.communicate(runner["host"], int(runner["port"]), "runtest:"+commit_id)
 
             if response == "OK":
                 print("adding id %s" % commit_id)
@@ -123,8 +122,7 @@ def serve():
             for runner in server.runners:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                    response = helpers.communicate(runner["host"], int(runner["port"]), b"ping")
-                    response = response.decode('utf-8')
+                    response = helpers.communicate(runner["host"], int(runner["port"]), "ping")
 
                     if response != "pong":
                         print("removing runner %s" % runner)
