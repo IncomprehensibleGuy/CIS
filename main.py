@@ -7,7 +7,7 @@ if __name__ == "__main__":
     repo_clone_runner_path = repo_path + 'repo_clone_runner'
     repo_clone_obs_path = repo_path + 'repo_clone_obs'
 
-    n_test_runners = 1
+    n_test_runners = 2
 
     start_dispatcher_command = 'dispatcher.py'
     start_test_runner_command = 'test_runner.py ' + repo_clone_runner_path
@@ -16,6 +16,6 @@ if __name__ == "__main__":
 
     # Run CIS
     system('start cmd /K python ' + start_dispatcher_command)
-    #system('start cmd /K python ' + start_repo_observer_command)
+    system('start cmd /K python ' + start_repo_observer_command)
     for n in range(n_test_runners):
         system('start cmd /K python ' + start_test_runner_command)
