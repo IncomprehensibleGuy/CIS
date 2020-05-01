@@ -157,7 +157,7 @@ def serve():
                         server.shutdown()
                         return
                 except socket.error as e:
-                    print("Can't communicate with dispatcher: %s" % e)
+                    print(f"Can't communicate with dispatcher: {e}")
                     server.shutdown()
                     return
 
