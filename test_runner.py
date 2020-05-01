@@ -80,25 +80,26 @@ def serve():
     range_start = 8900
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host",
-                        help="runner's host, by default it uses localhost",
-                        default="localhost",
-                        action="store")
-    parser.add_argument("--port",
-                        help="runner's port, by default it uses values >=%s" % range_start,
-                        action="store")
-    parser.add_argument("--dispatcher-server",
-                        help="dispatcher host:port, by default it uses localhost:8888",
-                        default="localhost:8888",
-                        action="store")
-    parser.add_argument("repo",
-                        metavar="REPO",
+    parser.add_argument('--host',
+                        help='runner\'s host, by default it uses localhost',
+                        default='localhost',
+                        action='store')
+    parser.add_argument('--port',
+                        help=f'runner\'s port, by default it uses values >={range_start}',
+                        action='store')
+    parser.add_argument('--dispatcher-server',
+                        help='dispatcher host:port, by default it uses localhost:8888',
+                        default='localhost:8888',
+                        action='store')
+    parser.add_argument('repo',
+                        metavar='REPO',
                         type=str,
-                        help="path to the repository this will observe")
+                        help='path to the repository this will observe')
     args = parser.parse_args()
 
 
-    print(' port=', args.port, '\n', 'host=', args.host, '\n', 'repo=', args.repo,'\n')
+    print(f'Test socket - {args.port}:{args.host}\n',
+          f'Repository - {args.repo}\n')
 
 
     runner_host = args.host
