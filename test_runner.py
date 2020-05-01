@@ -26,11 +26,11 @@ class TestHandler(socketserver.BaseRequestHandler):
     The RequestHandler class for our server.
     """
 
-    # ()	Группирует выражение и возвращает найденный текст
-    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
-    # +	    1 и более вхождений шаблона слева
-    # .	    Один любой символ, кроме новой строки \n
-    # *	    0 и более вхождений шаблона слева
+    # ()	Group expression and return detected text
+    # \w	Any digit or letter (\W — any except letter or digit)
+    # +	    1 or more occurrences of the pattern on the left
+    # .	    Any single character except new line \n
+    # *	    0 or more occurrences of the pattern on the left
     command_re = re.compile(r"(\w+)(:.+)*")
 
     def handle(self):
