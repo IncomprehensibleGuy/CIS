@@ -40,46 +40,44 @@ class TestHandler(socketserver.BaseRequestHandler):
         command = command_groups.group(1)
 
         if not command:
-            self.request.sendall(b"Invalid command")
+            self.request.sendall(b'Invalid command')
             return
 
-        if command == "ping":
-            print("pinged")
+        if command == 'ping':
+            print('pinged')
             self.server.last_communication = time.time()
-            self.request.sendall(b"pong")
-        elif command == "runtest":
-            print(f"got runtest command: am I busy? {self.server.busy}")
+            self.request.sendall(b'pong')
+        elif command == 'runtest':
+            print(f'got runtest command: am I busy? {self.server.busy}')
             if self.server.busy:
-                self.request.sendall(b"BUSY")
+                self.request.sendall(b'BUSY')
             else:
-                self.request.sendall(b"OK")
-                print("running")
+                self.request.sendall(b'OK')
+                print('running')
                 commit_id = command_groups.group(2)[1:]
                 self.server.busy = True
-                self.run_tests(commit_id,
-                               self.server.repo_folder)
+                self.run_tests(commit_id, self.server.repo_folder)
                 self.server.busy = False
         else:
-            self.request.sendall(b"Invalid command")
+            self.request.sendall(b'Invalid command')
 
     def run_tests(self, commit_id, repo_folder):
-        # update repo
-        output = subprocess.check_output(["test_runner_script.sh", repo_folder, commit_id], shell=True)
+        # Update repo
+        output = subprocess.check_output(['test_runner_script.sh', repo_folder, commit_id], shell=True)
         print(output)
-        # run the tests
-        test_folder = os.path.join(repo_folder, "tests")
+        # Run the tests
+        test_folder = os.path.join(repo_folder, 'tests')
         suite = unittest.TestLoader().discover(test_folder)
-        result_file = open("results.txt", "a")
-        t = time.strftime("%H:%M:%S  %d.%m.%Y")
-        result_file.write(f"Test started ad {t}")
+        result_file = open('results.txt', 'a')
+        t = time.strftime('%H:%M:%S  %d.%m.%Y')
+        result_file.write(f'Test started ad {t}')
         unittest.TextTestRunner(result_file).run(suite)
         result_file.close()
-        result_file = open("results.txt", "r")
-        # give the dispatcher the results
+        result_file = open('results.txt', 'r')
+        # Give the dispatcher the results
         output = result_file.read()
-        helpers.communicate(self.server.dispatcher_server["host"],
-                            int(self.server.dispatcher_server["port"]),
-                            f"results:{commit_id}:{len(output)}:{output}")
+        helpers.communicate(self.server.dispatcher_host, self.server.dispatcher_port,
+                            f'results:{commit_id}:{len(output)}:{output}')
         result_file.close()
 
 
