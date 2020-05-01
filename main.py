@@ -16,6 +16,6 @@ if __name__ == "__main__":
 
     # Run CIS
     system('start cmd /K python ' + start_dispatcher_command)
-    system('start cmd /K python ' + start_repo_observer_command)
+    #system('start cmd /K python ' + start_repo_observer_command)
     for n in range(n_test_runners):
         system('start cmd /K python ' + start_test_runner_command)

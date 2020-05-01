@@ -43,10 +43,10 @@ class TestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(b'Invalid command')
             return
 
-        if command == 'ping':
+        if command == 'are_you_working':
             print('pinged')
             self.server.last_communication = time.time()
-            self.request.sendall(b'pong')
+            self.request.sendall(b'yes')
         elif command == 'runtest':
             print(f'got runtest command: am I busy? {self.server.busy}')
             if self.server.busy:
@@ -139,21 +139,23 @@ def serve():
     if response != 'OK':
         raise Exception('Can\'t register with dispatcher!')
 
-    def dispatcher_checker(server):
+    def dispatcher_checker(test_runner_server):
         # Checks if the dispatcher went down.
         # If it is down, we will shut down if since the dispatcher may not have the same host/port when it comes back up.
-        while server.is_serving:
+        while test_runner_server.is_serving:
             time.sleep(5)
-            if (time.time() - server.last_communication) > 10:
+            if (time.time() - test_runner_server.last_communication) > 10:
                 try:
-                    response = helpers.communicate(server.dispatcher_host, int(server.dispatcher_port), 'status')
+                    response = helpers.communicate(test_runner_server.dispatcher_host,
+                                                   test_runner_server.dispatcher_port,
+                                                   'status')
                     if response != 'OK':
                         print('Dispatcher is no longer functional')
-                        server.shutdown()
+                        test_runner_server.shutdown()
                         return
                 except socket.error as e:
                     print(f'Can\'t communicate with dispatcher: {e}')
-                    server.shutdown()
+                    test_runner_server.shutdown()
                     return
 
     t = threading.Thread(target=dispatcher_checker, args=(test_runner_server,))
