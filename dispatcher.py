@@ -39,6 +39,11 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
     This will dispatch test runners against the incoming commit and handle their requests and test results
     """
 
+    # ()	Группирует выражение и возвращает найденный текст
+    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
+    # +	    1 и более вхождений шаблона слева
+    # .	    Один любой символ, кроме новой строки \n
+    # *	    0 и более вхождений шаблона слева
     command_re = re.compile(r"(\w+)(:.+)*")
     BUF_SIZE = 1024
 

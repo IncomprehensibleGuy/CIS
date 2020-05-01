@@ -13,10 +13,12 @@ import helpers
 
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    dispatcher_server = None # Holds the dispatcher server host/port information
+    repo_folder = None
+    dispatcher_host = None # Holds the dispatcher server host/port information
+    dispatcher_port = None
     last_communication = None # Keeps track of last communication from dispatcher
     busy = False # Status flag
-    dead = False # Status flag
+    is_serving = True # Status flag
 
 
 class TestHandler(socketserver.BaseRequestHandler):
@@ -24,6 +26,11 @@ class TestHandler(socketserver.BaseRequestHandler):
     The RequestHandler class for our server.
     """
 
+    # ()	Группирует выражение и возвращает найденный текст
+    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
+    # +	    1 и более вхождений шаблона слева
+    # .	    Один любой символ, кроме новой строки \n
+    # *	    0 и более вхождений шаблона слева
     command_re = re.compile(r"(\w+)(:.+)*")
 
     def handle(self):
@@ -97,82 +104,69 @@ def serve():
                         help='path to the repository this will observe')
     args = parser.parse_args()
 
+    # Get servers parameters from command line parser
+    test_runner_host = args.host
+    test_runner_port = args.port
+    dispatcher_host = args.dispatcher_server.split(":")[0]
+    dispatcher_port = int(args.dispatcher_server.split(":")[1])
+    print(f'Got dispatcher server info - {dispatcher_host}:{dispatcher_port}')
 
-    print(f'Test socket - {args.port}:{args.host}\n',
-          f'Repository - {args.repo}\n')
-
-
-    runner_host = args.host
-    runner_port = None
+    # Create the test_runner server
     tries = 0
-
-    if not args.port:
-        runner_port = range_start
+    if not test_runner_port:
+        test_runner_port = range_start
         while tries < 100:
             try:
-                server = ThreadingTCPServer((runner_host, runner_port), TestHandler)
-                print(server)
-                print(runner_port)
+                test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
                 break
             except socket.error as e:
                 if e.errno == errno.EADDRINUSE:
                     tries += 1
-                    runner_port = runner_port + tries
+                    test_runner_port += tries
                     continue
                 else:
                     raise e
         else:
-            raise Exception(f"Could not bind to ports in range {range_start}-{range_start+tries}")
+            raise Exception(f'Could not bind to ports in range {range_start}-{range_start + tries}')
     else:
-        runner_port = int(args.port)
-        server = ThreadingTCPServer((runner_host, runner_port), TestHandler)
-    server.repo_folder = args.repo
+        test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
 
-    dispatcher_host, dispatcher_port = args.dispatcher_server.split(":")
-    print('dispatcher_host=', dispatcher_host, '\n', 'dispatcher_port=', dispatcher_port)
+    test_runner_server.repo_folder = args.repo
+    test_runner_server.dispatcher_host = dispatcher_host
+    test_runner_server.dispatcher_port = dispatcher_port
+    print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
-
-    server.dispatcher_server = {"host":dispatcher_host, "port":dispatcher_port}
-    response = helpers.communicate(server.dispatcher_server["host"],
-                                   int(server.dispatcher_server["port"]),
-                                   f"register:{runner_host}:{runner_port}")
-
-    if response != "OK":
-        raise Exception("Can't register with dispatcher!")
+    # Try to register test runner with dispatcher
+    response = helpers.communicate(dispatcher_host, dispatcher_port, f'register:{test_runner_host}:{test_runner_port}')
+    if response != 'OK':
+        raise Exception('Can\'t register with dispatcher!')
 
     def dispatcher_checker(server):
-        # Checks if the dispatcher went down. If it is down, we will shut down
-        # if since the dispatcher may not have the same host/port
-        # when it comes back up.
-        while not server.dead:
+        # Checks if the dispatcher went down.
+        # If it is down, we will shut down if since the dispatcher may not have the same host/port when it comes back up.
+        while server.is_serving:
             time.sleep(5)
             if (time.time() - server.last_communication) > 10:
                 try:
-                    response = helpers.communicate(
-                                       server.dispatcher_server["host"],
-                                       int(server.dispatcher_server["port"]),
-                                       "status")
-
-                    if response != "OK":
-                        print("Dispatcher is no longer functional")
+                    response = helpers.communicate(server.dispatcher_host, int(server.dispatcher_port), 'status')
+                    if response != 'OK':
+                        print('Dispatcher is no longer functional')
                         server.shutdown()
                         return
                 except socket.error as e:
-                    print(f"Can't communicate with dispatcher: {e}")
+                    print(f'Can\'t communicate with dispatcher: {e}')
                     server.shutdown()
                     return
 
-    t = threading.Thread(target=dispatcher_checker, args=(server,))
+    t = threading.Thread(target=dispatcher_checker, args=(test_runner_server,))
     try:
         t.start()
-        # Activate the server; this will keep running until you
-        # interrupt the program with Ctrl-C
-        server.serve_forever()
+        # Activate the server; this will keep running until interrupt ( Ctrl-C )
+        test_runner_server.serve_forever()
     except (KeyboardInterrupt, Exception):
-        # if any exception occurs, kill the thread
-        server.dead = True
+        # If any exception occurs, kill the thread
+        test_runner_server.is_serving = False
         t.join()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     serve()
