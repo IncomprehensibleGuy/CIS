@@ -18,9 +18,10 @@ if __name__ == "__main__":
     from os import system
 
     system('start cmd /K python ' + 'dispatcher.py')
+    system('start cmd /K python ' + 'pusher.py ' + repo_clone_obs_path)
 
     if observer_work:
-        system('start cmd /K python ' + 'repo_observer.py ' + repo_clone_obs_path)
+        pass
     else:
         # Create git hook script will run run_pusher.py
         pass

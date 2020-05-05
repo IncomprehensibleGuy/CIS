@@ -1,42 +1,80 @@
-import socket
+import os
+import subprocess
+from time import sleep
+from socket import error
+
 import helpers
 
 
-def push_commit_to_dispatcher():
-    # Settings
-    dispatcher_host = 'localhost'
-    dispatcher_port = 8888
-    commit_id_path = 'C:/Users/Greg/Desktop/Projects/CIS/commit_id.txt'
-
+def make_commit_id_file(repo_clone_observer:str):
+    '''
+    Call the bash script that will update the repo and check for changes.
+    If there's a change, it will drop a .commit_id file with the latest commit in the current working directory.
+    '''
     try:
-        # Call the bash script that will update the repo and check for changes.
-        # If there's a change, it will drop a .commit_id file with the latest commit in the current working directory
-        subprocess.check_output(['update_repo.sh', repo_clone_obs], shell=True)
+        subprocess.check_output(['update_repo.sh', repo_clone_observer], shell=True)
     except subprocess.CalledProcessError as e:
         raise Exception(f'Could not update and check repository. Reason: {e.output}')
 
+
+def get_commit_from_file() -> str:
     if os.path.isfile('.commit_id'):
-        # We have a change -> execute the tests
+        commit_file = open('.commit_id', 'r')
+        commit = commit_file.readline()
+        commit_file.close()
+        return commit
+    else:
+        return 'not commit'
 
-        # Check the status of the dispatcher server to see if we can send the tests
-        try:
-            response = helpers.communicate(dispatcher_host, int(dispatcher_port), 'status')
-        except error:
-            raise Exception(f'Could not communicate with dispatcher server: {error}')
 
+def push_commit_to_dispatcher(dispatcher_host:str, dispatcher_port:int, commit:str):
+    '''
+    Check the status of the dispatcher server to see if we can send the commit and if everything is ok send it.
+    '''
+    try:
+        response = helpers.communicate(dispatcher_host, dispatcher_port, 'status')
+    except error:
+        raise Exception(f'Could not communicate with dispatcher server: {error}')
+
+    if response == 'OK':
+        response = helpers.communicate(dispatcher_host, dispatcher_port, 'dispatch:'+commit)
         if response == 'OK':
-            # Dispatcher is working -> send it commit
-            commit_file = open('.commit_id', 'r')
-            commit = commit_file.readline()
-            commit_file.close()
-            response = helpers.communicate(dispatcher_host, int(dispatcher_port), 'dispatch:' + commit)
-            if response != 'OK':
-                raise Exception(f'Could not dispatch the test: {response}')
-            print('dispatched!')
+            print('commit dispatched')
         else:
-            # Dispatcher is not working
             raise Exception(f'Could not dispatch the test: {response}')
+    else:
+        raise Exception(f'Could not dispatch the test: {response}')
 
 
-if __name__ == "__main__":
-    push_commit_to_dispatcher()
+def main_job(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int):
+    make_commit_id_file(repo_clone_observer)
+    commit = get_commit_from_file()
+    if commit != 'not commit':
+        # We have a change -> send the commit to dispatcher
+        push_commit_to_dispatcher(dispatcher_host, dispatcher_port, commit)
+
+
+def observe(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int, schedule:int):
+    while True:
+        main_job(repo_clone_observer, dispatcher_host, dispatcher_port)
+        sleep(schedule)
+
+
+
+if __name__ == '__main__':
+    # Settings
+    dispatcher_host = 'localhost'
+    dispatcher_port = 8888
+
+    repo_clone_obs = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
+
+    schedule = 3  # Waiting time to check repo in seconds
+    test_every_commit = False  # Determines whether we will test every commit or check repo periodically
+    # To close observer
+    pid = os.getpid()
+
+    # Start
+    if test_every_commit:
+        main_job(repo_clone_obs, dispatcher_host, dispatcher_port)
+    else:
+        observe(repo_clone_obs, dispatcher_host, dispatcher_port, schedule)
