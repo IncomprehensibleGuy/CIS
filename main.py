@@ -7,17 +7,23 @@ if __name__ == "__main__":
     repo_clone_runner_path = repo_path + 'repo_clone_runner'
     repo_clone_obs_path = repo_path + 'repo_clone_obs'
 
+    test_results_path = ''
+
+    observer_work = False # Determines whether observer will work or not
+
     n_test_runners = 1
 
-    start_dispatcher_command = 'dispatcher.py'
-    start_test_runner_command = 'test_runner.py ' + repo_clone_runner_path
-    start_repo_observer_command = 'repo_observer.py ' + repo_clone_obs_path
 
-
-    # Run CIS
+    # Run CI system
     from os import system
 
-    system('start cmd /K python ' + start_dispatcher_command)
-    system('start cmd /K python ' + start_repo_observer_command)
+    system('start cmd /K python ' + 'dispatcher.py')
+
+    if observer_work:
+        system('start cmd /K python ' + 'repo_observer.py ' + repo_clone_obs_path)
+    else:
+        # Create git hook script will run run_pusher.py
+        pass
+
     for n in range(n_test_runners):
-        system('start cmd /K python ' + start_test_runner_command)
+        system('start cmd /K python ' + 'test_runner.py ' + repo_clone_runner_path)
