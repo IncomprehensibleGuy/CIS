@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-REPO=$1
-COMMIT=$2
+REPO=$1   # repo path
+COMMIT=$2 # commit id
 
 source run_or_fail.sh
 

@@ -82,6 +82,7 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
     # +	    1 or more occurrences of the pattern on the left
     # .	    Any single character except new line \n
     # *	    0 or more occurrences of the pattern on the left
+    # so we have (\w+) - 1st group is a word, and (:.+)* - 0 or more info word with : (:1111, :flwefwkfjw, ...)
     command_pattern = re.compile(r"(\w+)(:.+)*")
     BUF_SIZE = 1024
 
@@ -89,6 +90,7 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
         ''' ?  '''
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(self.BUF_SIZE).decode('utf-8').strip()
+        #print('data accepted:_____________\n', self.data,'\n_____________')
         command_groups = self.command_pattern.match(self.data)
 
         if not command_groups:

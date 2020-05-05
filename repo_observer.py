@@ -11,7 +11,7 @@ def poll():
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
     repo_clone_obs = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
-    schedule = 12 # Waiting time to check repo in seconds
+    schedule = 3 # Waiting time to check repo in seconds
 
     while True:
         try:
@@ -47,4 +47,6 @@ def poll():
 
 
 if __name__ == '__main__':
+    p = os.getpid()
+    print(p)
     poll()

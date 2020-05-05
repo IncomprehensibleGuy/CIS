@@ -36,8 +36,11 @@ class TestHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).decode('utf-8').strip()
+        #print('data accepted:_____________\n', self.data,'\n_____________')
         command_groups = self.command_re.match(self.data)
         command = command_groups.group(1)
+
+        #command = self.data
 
         if not command:
             self.request.sendall(b'Invalid command')
@@ -68,11 +71,15 @@ class TestHandler(socketserver.BaseRequestHandler):
         # Run the tests
         test_folder = os.path.join(repo_folder, 'tests')
         suite = unittest.TestLoader().discover(test_folder)
+
         result_file = open('results.txt', 'a')
         t = time.strftime('%H:%M:%S  %d.%m.%Y')
-        result_file.write(f'Test started ad {t}')
+        text = '='*70 + f'Test started ad {t}'
+        result_file.write(test)
         unittest.TextTestRunner(result_file).run(suite)
+        result_file.write('='*70)
         result_file.close()
+
         result_file = open('results.txt', 'r')
         # Give the dispatcher the results
         output = result_file.read()
