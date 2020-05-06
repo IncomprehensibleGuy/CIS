@@ -283,11 +283,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.2" />
         <item itemvalue="Python.test_runner" />
         <item itemvalue="Python.repo_observer" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.dispatcher" />
+        <item itemvalue="Python.2" />
       </list>
     </recent_temporary>
   </component>
