@@ -1,4 +1,5 @@
 import os
+import argparse
 import subprocess
 from time import sleep
 from socket import error
@@ -52,6 +53,8 @@ def main_job(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int):
     if commit != 'not commit':
         # We have a change -> send the commit to dispatcher
         push_commit_to_dispatcher(dispatcher_host, dispatcher_port, commit)
+    else:
+        print('no .commit_id file')
 
 
 def observe(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int, schedule:int):
@@ -60,18 +63,26 @@ def observe(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int, s
         sleep(schedule)
 
 
-
 if __name__ == '__main__':
+    # To close pusher
+    pid = os.getpid()
+    ids = open('ids.txt', 'a')
+    ids.write('pusher:' + str(pid) + '\n')
+    ids.close()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('test_every_commit', type=int, action='store',
+                        help='Determines whether we will test every commit (1) or check repo periodically (0)')
+
     # Settings
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
 
     repo_clone_obs = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
-
-    schedule = 3  # Waiting time to check repo in seconds
-    test_every_commit = False  # Determines whether we will test every commit or check repo periodically
-    # To close observer
-    pid = os.getpid()
+    # Waiting time to check repo in seconds
+    schedule = 5
+    # Determines whether we will test every commit or check repo periodically
+    test_every_commit = parser.parse_args().test_every_commit
 
     # Start
     if test_every_commit:

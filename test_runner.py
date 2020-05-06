@@ -75,7 +75,7 @@ class TestHandler(socketserver.BaseRequestHandler):
         result_file = open('results.txt', 'a')
         t = time.strftime('%H:%M:%S  %d.%m.%Y')
         text = '='*70 + f'Test started ad {t}'
-        result_file.write(test)
+        result_file.write(text)
         unittest.TextTestRunner(result_file).run(suite)
         result_file.write('='*70)
         result_file.close()
@@ -83,9 +83,11 @@ class TestHandler(socketserver.BaseRequestHandler):
         result_file = open('results.txt', 'r')
         # Give the dispatcher the results
         output = result_file.read()
+
         helpers.communicate(self.server.dispatcher_host, self.server.dispatcher_port,
                             f'results:{commit_id}:{len(output)}:{output}')
         result_file.close()
+        os.remove('results.txt')
 
 
 def serve():
@@ -141,6 +143,12 @@ def serve():
     test_runner_server.dispatcher_port = dispatcher_port
     print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
+    # To identify specific test runner (may be several) add port to module name and send it pid
+    ids = open('ids.txt', 'a')
+    ids.write('test_runner'+str(test_runner_port)+':' + str(pid) + '\n')
+    ids.close()
+
+
     # Try to register test runner with dispatcher
     response = helpers.communicate(dispatcher_host, dispatcher_port, f'register:{test_runner_host}:{test_runner_port}')
     if response != 'OK':
@@ -176,4 +184,6 @@ def serve():
         t.join()
 
 if __name__ == '__main__':
+    # To close test runner
+    pid = os.getpid()
     serve()

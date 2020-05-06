@@ -169,4 +169,10 @@ def serve():
 
 
 if __name__ == "__main__":
+    # To close dispatcher
+    pid = os.getpid()
+    ids = open('ids.txt', 'w')
+    ids.write('dispatcher:' + str(pid) + '\n')
+    ids.close()
+
     serve()
