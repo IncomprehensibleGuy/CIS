@@ -13,3 +13,11 @@ def communicate(host, port, message) -> str :
     s.close()
 
     return response
+
+
+def write_process_id(module:str, identifier='', mode='w'):
+    # To close module by pid
+    pid = os.getpid()
+    ids = open('ids.txt', mode)
+    ids.write(module + identifier + ':' + str(pid) + '\n')
+    ids.close()

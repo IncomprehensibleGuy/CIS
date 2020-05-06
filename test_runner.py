@@ -144,10 +144,7 @@ def serve():
     print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
     # To identify specific test runner (may be several) add port to module name and send it pid
-    ids = open('ids.txt', 'a')
-    ids.write('test_runner'+str(test_runner_port)+':' + str(pid) + '\n')
-    ids.close()
-
+    helpers.write_process_id('test_runner', identifier=str(test_runner_port), mode='a')
 
     # Try to register test runner with dispatcher
     response = helpers.communicate(dispatcher_host, dispatcher_port, f'register:{test_runner_host}:{test_runner_port}')

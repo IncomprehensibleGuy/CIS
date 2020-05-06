@@ -65,10 +65,7 @@ def observe(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int, s
 
 if __name__ == '__main__':
     # To close pusher
-    pid = os.getpid()
-    ids = open('ids.txt', 'a')
-    ids.write('pusher:' + str(pid) + '\n')
-    ids.close()
+    helpers.write_process_id('pusher', mode='a')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('test_every_commit', type=int, action='store',
