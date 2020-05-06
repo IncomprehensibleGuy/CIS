@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "### start run_pusher script ###"
+py  C:/Users/Greg/Desktop/Projects/CIS/source/run_pusher.py

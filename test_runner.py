@@ -26,18 +26,21 @@ class TestHandler(socketserver.BaseRequestHandler):
     The RequestHandler class for our server.
     """
 
-    # ()	Группирует выражение и возвращает найденный текст
-    # \w	Любая цифра или буква (\W — все, кроме буквы или цифры)
-    # +	    1 и более вхождений шаблона слева
-    # .	    Один любой символ, кроме новой строки \n
-    # *	    0 и более вхождений шаблона слева
+    # ()	Group expression and return detected text
+    # \w	Any digit or letter (\W — any except letter or digit)
+    # +	    1 or more occurrences of the pattern on the left
+    # .	    Any single character except new line \n
+    # *	    0 or more occurrences of the pattern on the left
     command_re = re.compile(r"(\w+)(:.+)*")
 
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).decode('utf-8').strip()
+        #print('data accepted:_____________\n', self.data,'\n_____________')
         command_groups = self.command_re.match(self.data)
         command = command_groups.group(1)
+
+        #command = self.data
 
         if not command:
             self.request.sendall(b'Invalid command')
@@ -68,17 +71,23 @@ class TestHandler(socketserver.BaseRequestHandler):
         # Run the tests
         test_folder = os.path.join(repo_folder, 'tests')
         suite = unittest.TestLoader().discover(test_folder)
+
         result_file = open('results.txt', 'a')
         t = time.strftime('%H:%M:%S  %d.%m.%Y')
-        result_file.write(f'Test started ad {t}')
+        text = '='*70 + f'Test started ad {t}'
+        result_file.write(text)
         unittest.TextTestRunner(result_file).run(suite)
+        result_file.write('='*70)
         result_file.close()
+
         result_file = open('results.txt', 'r')
         # Give the dispatcher the results
         output = result_file.read()
+
         helpers.communicate(self.server.dispatcher_host, self.server.dispatcher_port,
                             f'results:{commit_id}:{len(output)}:{output}')
         result_file.close()
+        os.remove('results.txt')
 
 
 def serve():
@@ -134,6 +143,12 @@ def serve():
     test_runner_server.dispatcher_port = dispatcher_port
     print(f'Test runner serving on {test_runner_host}:{test_runner_port}')
 
+    # To identify specific test runner (may be several) add port to module name and send it pid
+    ids = open('ids.txt', 'a')
+    ids.write('test_runner'+str(test_runner_port)+':' + str(pid) + '\n')
+    ids.close()
+
+
     # Try to register test runner with dispatcher
     response = helpers.communicate(dispatcher_host, dispatcher_port, f'register:{test_runner_host}:{test_runner_port}')
     if response != 'OK':
@@ -169,4 +184,6 @@ def serve():
         t.join()
 
 if __name__ == '__main__':
+    # To close test runner
+    pid = os.getpid()
     serve()
