@@ -1,5 +1,5 @@
 from socket import socket, AF_INET, SOCK_STREAM
-
+import os
 
 def communicate(host, port, message) -> str :
     ''' Helper-method to communicate repo_observer, dispatcher and test_runner

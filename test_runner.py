@@ -66,10 +66,9 @@ class TestHandler(socketserver.BaseRequestHandler):
 
     def run_tests(self, commit_id, repo_folder):
         # Update repo
-        output = subprocess.check_output(['test_runner_script.sh', repo_folder, commit_id], shell=True)
-        print(output)
+        subprocess.check_output(['test_runner_script.sh', repo_folder, commit_id], shell=True)
         # Run the tests
-        test_folder = os.path.join(repo_folder, 'tests')
+        test_folder = os.path.join(repo_folder, 'tests') # repo_folder + tests
         suite = unittest.TestLoader().discover(test_folder)
 
         result_file = open('results.txt', 'a')
@@ -118,7 +117,7 @@ def serve():
     dispatcher_port = int(args.dispatcher_server.split(":")[1])
     print(f'Got dispatcher server info - {dispatcher_host}:{dispatcher_port}')
 
-    # Create the test_runner server
+    # Create instance of the test_runner server
     tries = 0
     if not test_runner_port:
         test_runner_port = range_start
@@ -181,6 +180,4 @@ def serve():
         t.join()
 
 if __name__ == '__main__':
-    # To close test runner
-    pid = os.getpid()
     serve()

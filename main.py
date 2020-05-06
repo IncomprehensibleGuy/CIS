@@ -6,7 +6,7 @@ settings = {
     'repo_clone_observer_path': '',
     'repo_clone_test_runner_path':'',
     'test_results_path':'',
-    'test_every_commit':False, # Determines whether we will test every commit or check repo periodically
+    'test_every_commit':True, # Determines whether we will test every commit or check repo periodically
     'n_test_runners': 1,
 }
 
