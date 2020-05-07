@@ -67,9 +67,9 @@ if __name__ == '__main__':
     # To close pusher
     helpers.write_process_id('pusher', mode='a')
 
+    # Determines whether we will check repo periodically (0) or test every commit (1)
     parser = argparse.ArgumentParser()
-    parser.add_argument('test_every_commit', type=int, action='store',
-                        help='Determines whether we will test every commit (1) or check repo periodically (0)')
+    parser.add_argument('test_every_commit', type=int, action='store')
 
     # Settings
     dispatcher_host = 'localhost'
