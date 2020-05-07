@@ -128,15 +128,20 @@ class Ui_MainWindow(object):
             except:
                 try:
                     if self.repository_path[-1] not in ['/', '\\']:
-                        self.repository_path += '/'
+                        if '\\' in self.repository_path:
+                            self.repository_path += '\\'
+                        else:
+                            self.repository_path += '/'
 
                     self.n_test_runners = self.spinBox.value()
                     self.test_every_commit = self.every_commit_radio_button.isChecked()
 
                     helpers.start_system(self.repository_path, self.test_every_commit, self.n_test_runners)
                     self.started = True
-                except:
-                    self.textBrowser.setText('Что пошло не так...')
+                    self.textBrowser.setText('Система запущена')
+                except Exception as e:
+                    print(e)
+                    self.textBrowser.setText('Что-то пошло не так...')
         else:
             self.textBrowser.setText('Укажите путь к репозиторию')
 
