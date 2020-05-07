@@ -1,5 +1,5 @@
 from socket import socket, AF_INET, SOCK_STREAM
-from os import system, remove, path, getpid
+from os import system, remove, path, pardir, getpid
 
 
 def communicate(host, port, message) -> str :
@@ -55,28 +55,24 @@ def get_all_processes_ids():
 def start_system(repository_path:str, test_every_commit:bool, n_test_runners:int):
     ''' Run CI system '''
 
-    if path.exists(repository_path+'repo_clone_obs') and \
-            path.exists(repository_path+'repo_clone_runner'):
-        # Run dispatcher
-        system('start cmd /K python ' + 'dispatcher.py')
+    # Run dispatcher
+    system('start cmd /K python ' + 'dispatcher.py')
 
-        # Run pusher with flag 0 ()
-        if test_every_commit:
-            post_commit_file = open(repository_path + '.git/hooks/post-commit', 'w')
-            code = open('post_commit_code.txt', 'r').read()
-            post_commit_file.write(code)
-            post_commit_file.close()
-        else:
-            if path.isfile(repository_path + '.git/hooks/post-commit'):
-                remove(repository_path + '.git/hooks/post-commit')
-            system('start cmd /K python ' + 'pusher.py' + ' 0')
-
-        for n in range(n_test_runners):
-            system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_runner')
-
-
-        import os,time
-        time.sleep(2)
-        get_all_processes_ids()
+    # Run pusher with flag 0 ()
+    if test_every_commit:
+        post_commit_file = open(repository_path + '.git/hooks/post-commit', 'w')
+        code = open('post_commit_code.txt', 'r').read()
+        post_commit_file.write(code)
+        post_commit_file.close()
     else:
-        print('no clones')
+        if path.isfile(repository_path + '.git/hooks/post-commit'):
+            remove(repository_path + '.git/hooks/post-commit')
+        system('start cmd /K python ' + 'pusher.py' + ' 0')
+
+    # Run test runner('s)
+    for n in range(n_test_runners):
+        system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_runner')
+
+    import os, time
+    time.sleep(2)
+    get_all_processes_ids()

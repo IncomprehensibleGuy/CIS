@@ -70,6 +70,7 @@ if __name__ == '__main__':
     # Determines whether we will check repo periodically (0) or test every commit (1)
     parser = argparse.ArgumentParser()
     parser.add_argument('test_every_commit', type=int, action='store')
+    test_every_commit = parser.parse_args().test_every_commit
 
     # Settings
     dispatcher_host = 'localhost'
@@ -78,8 +79,7 @@ if __name__ == '__main__':
     repo_clone_obs = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
     # Waiting time to check repo in seconds
     schedule = 5
-    # Determines whether we will test every commit or check repo periodically
-    test_every_commit = parser.parse_args().test_every_commit
+
 
     # Start
     if test_every_commit:
