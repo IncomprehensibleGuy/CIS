@@ -110,6 +110,9 @@ class Ui_MainWindow(object):
         if self.repo_path != '':
             print(self.repo_path)
             self.textBrowser.setText('Current repository path: ' + self.repo_path)
+        else:
+            print(self.repo_path)
+            self.textBrowser.setText('Paste repository path')
 
 
 if __name__ == "__main__":
