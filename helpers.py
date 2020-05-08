@@ -1,17 +1,18 @@
 from socket import socket, AF_INET, SOCK_STREAM
 from os import system, remove, path, pardir, getpid
+import subprocess
 
 
-def communicate(host, port, message) -> str :
+def communicate(host:str, port:int, message:str) -> str :
     ''' Helper-method to communicate repo_observer, dispatcher and test_runner
         :returns string response
     '''
 
-    s = socket(AF_INET, SOCK_STREAM)
-    s.connect((host, port))
-    s.send(bytes(message, encoding='utf-8'))
-    response = s.recv(1024).decode('utf-8')
-    s.close()
+    endpoint = socket(AF_INET, SOCK_STREAM)
+    endpoint.connect((host, port))
+    endpoint.send(bytes(message, encoding='utf-8'))
+    response = endpoint.recv(1024).decode('utf-8')
+    endpoint.close()
 
     return response
 
@@ -20,7 +21,7 @@ module_process_ids = {} # Contains process id's of all dispatcher, pusher(if sta
 
 
 def write_process_id(module:str, identifier='', mode='w'):
-    # To close module by pid
+    ''' Write process id's to a file to stop modules '''
     pid = getpid()
     ids = open('ids.txt', mode)
     ids.write(module + identifier + ':' + str(pid) + '\n')
@@ -28,6 +29,9 @@ def write_process_id(module:str, identifier='', mode='w'):
 
 
 def kill_process(id:str):
+    '''
+    :returns 0 if successfully stop process, else -1
+    '''
     try:
         system('taskkill -f /pid ' + id)
         return 0
@@ -54,6 +58,11 @@ def get_all_processes_ids():
 
 def start_system(repository_path:str, test_every_commit:bool, n_test_runners:int):
     ''' Run CI system '''
+
+    # Create repo clones for pusher and test_runner
+    if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
+            ( not path.exists(repository_path + 'repo_clone_test_runner') ):
+        subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
 
     # Run dispatcher
     system('start cmd /K python ' + 'dispatcher.py')

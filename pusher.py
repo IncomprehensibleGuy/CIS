@@ -7,13 +7,13 @@ from socket import error
 import helpers
 
 
-def make_commit_id_file(repo_clone_observer:str):
+def make_commit_id_file(repo_clone_pusher:str):
     '''
     Call the bash script that will update the repo and check for changes.
     If there's a change, it will drop a .commit_id file with the latest commit in the current working directory.
     '''
     try:
-        subprocess.check_output(['update_repo.sh', repo_clone_observer], shell=True)
+        subprocess.check_output(['update_repo.sh', repo_clone_pusher], shell=True)
     except subprocess.CalledProcessError as e:
         raise Exception(f'Could not update and check repository. Reason: {e.output}')
 
@@ -47,8 +47,8 @@ def push_commit_to_dispatcher(dispatcher_host:str, dispatcher_port:int, commit:s
         raise Exception(f'Could not dispatch the test: {response}')
 
 
-def main_job(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int):
-    make_commit_id_file(repo_clone_observer)
+def main_job(repo_clone_pusher:str, dispatcher_host:str, dispatcher_port:int):
+    make_commit_id_file(repo_clone_pusher)
     commit = get_commit_from_file()
     if commit != 'not commit':
         # We have a change -> send the commit to dispatcher
@@ -57,9 +57,9 @@ def main_job(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int):
         print('no .commit_id file')
 
 
-def observe(repo_clone_observer:str, dispatcher_host:str, dispatcher_port:int, schedule:int):
+def observe(repo_clone_pusher:str, dispatcher_host:str, dispatcher_port:int, schedule:int):
     while True:
-        main_job(repo_clone_observer, dispatcher_host, dispatcher_port)
+        main_job(repo_clone_pusher, dispatcher_host, dispatcher_port)
         sleep(schedule)
 
 
@@ -76,13 +76,13 @@ if __name__ == '__main__':
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
 
-    repo_clone_obs = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
+    repo_clone_pusher = 'C:/Users/Greg/Desktop/Projects/CIS/monitoring_repo/repo_clone_obs'
     # Waiting time to check repo in seconds
     schedule = 5
 
 
     # Start
     if test_every_commit:
-        main_job(repo_clone_obs, dispatcher_host, dispatcher_port)
+        main_job(repo_clone_pusher, dispatcher_host, dispatcher_port)
     else:
-        observe(repo_clone_obs, dispatcher_host, dispatcher_port, schedule)
+        observe(repo_clone_pusher, dispatcher_host, dispatcher_port, schedule)
