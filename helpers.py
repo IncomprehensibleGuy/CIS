@@ -1,6 +1,7 @@
+import subprocess
+import time
 from socket import socket, AF_INET, SOCK_STREAM
 from os import system, remove, path, pardir, getpid
-import subprocess
 
 
 def communicate(host:str, port:int, message:str) -> str :
@@ -56,7 +57,7 @@ def get_all_processes_ids():
     ids.close()
 
 
-def start_system(repository_path:str, test_every_commit:bool, n_test_runners:int):
+def start_system(repository_path:str, test_results_path:str, test_every_commit:bool, n_test_runners:int):
     ''' Run CI system '''
 
     # Create repo clones for pusher and test_runner
@@ -65,7 +66,7 @@ def start_system(repository_path:str, test_every_commit:bool, n_test_runners:int
         subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
 
     # Run dispatcher
-    system('start cmd /K python ' + 'dispatcher.py')
+    system('start cmd /K python ' + 'dispatcher.py ' + test_results_path)
 
     # Run pusher with flag 0 ()
     if test_every_commit:
@@ -82,6 +83,5 @@ def start_system(repository_path:str, test_every_commit:bool, n_test_runners:int
     for n in range(n_test_runners):
         system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_runner')
 
-    import os, time
     time.sleep(2)
     get_all_processes_ids()

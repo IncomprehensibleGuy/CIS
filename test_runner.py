@@ -67,22 +67,24 @@ class TestHandler(socketserver.BaseRequestHandler):
     def run_tests(self, commit_id, repo_folder):
         # Update repo
         subprocess.check_output(['test_runner_script.sh', repo_folder, commit_id], shell=True)
-        # Run the tests
-        test_folder = os.path.join(repo_folder, 'tests') # repo_folder + tests
-        suite = unittest.TestLoader().discover(test_folder)
+
 
         result_file = open('results.txt', 'a')
-        t = time.strftime('%H:%M:%S  %d.%m.%Y')
-        text = '='*70 + f'Test started ad {t}'
-        result_file.write(text)
+        start_time = time.strftime('%H:%M:%S  %d.%m.%Y')
+        preface = '='*70 + f'Test started ad {start_time}'
+        result_file.write(preface)
+
+        # Run the tests
+        test_folder = os.path.join(repo_folder, 'tests')  # repo_folder + tests
+        suite = unittest.TestLoader().discover(test_folder)
         unittest.TextTestRunner(result_file).run(suite)
+
         result_file.write('='*70)
         result_file.close()
 
-        result_file = open('results.txt', 'r')
         # Give the dispatcher the results
+        result_file = open('results.txt', 'r')
         output = result_file.read()
-
         helpers.communicate(self.server.dispatcher_host, self.server.dispatcher_port,
                             f'results:{commit_id}:{len(output)}:{output}')
         result_file.close()

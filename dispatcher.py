@@ -131,9 +131,9 @@ class DispatcherHandler(socketserver.BaseRequestHandler):
                 self.data += self.request.recv(length_msg - remaining_buffer).decode('utf-8').strip()
             del self.server.dispatched_commits[commit_id]
 
-            if not os.path.exists('test_results'):
-                os.makedirs('test_results')
-            with open(f'test_results/{commit_id}', 'w') as file:
+            if not os.path.exists(test_results_folder):
+                os.makedirs(test_results_folder)
+            with open(f'{test_results_folder}/{commit_id}', 'w') as file:
                 data = self.data.split(":")[3:]
                 data = '\n'.join(data)
                 file.write(data)
@@ -170,4 +170,10 @@ def serve():
 
 if __name__ == "__main__":
     helpers.write_process_id('dispatcher')
+
+    # Get folder as command line argument to save test results
+    parser = argparse.ArgumentParser()
+    parser.add_argument('test_results_folder', type=int, action='store')
+    test_results_folder = parser.parse_args().test_results_folder
+
     serve()
