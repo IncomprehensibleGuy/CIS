@@ -78,7 +78,7 @@ if __name__ == '__main__':
     dispatcher_host = 'localhost'
     dispatcher_port = 8888
 
-    repo_clone_pusher = repo_path + '/repo_clone_obs'
+    repo_clone_pusher = repo_path + '/repo_clone_pusher'
     # Waiting time to check repo in seconds
     schedule = 5
 

@@ -61,9 +61,9 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
     ''' Run CI system '''
 
     # Create repo clones for pusher and test_runner
-    #if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
-    #        ( not path.exists(repository_path + 'repo_clone_test_runner') ):
-    #    subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
+    if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
+            ( not path.exists(repository_path + 'repo_clone_test_runner') ):
+        subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
 
     # Run dispatcher
     system('start cmd /K python ' + 'dispatcher.py ' + test_results_path)
@@ -82,7 +82,7 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
 
     # Run test runner('s)
     for n in range(n_test_runners):
-        system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_runner')
+        system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_test_runner')
 
     time.sleep(2)
     get_all_processes_ids()
