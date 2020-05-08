@@ -1,7 +1,7 @@
 import subprocess
 import time
 from socket import socket, AF_INET, SOCK_STREAM
-from os import system, remove, path, pardir, getpid
+from os import system, remove, path, pardir, getpid, getcwd
 
 
 def communicate(host:str, port:int, message:str) -> str :
@@ -61,9 +61,9 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
     ''' Run CI system '''
 
     # Create repo clones for pusher and test_runner
-    if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
-            ( not path.exists(repository_path + 'repo_clone_test_runner') ):
-        subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
+    #if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
+    #        ( not path.exists(repository_path + 'repo_clone_test_runner') ):
+    #    subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
 
     # Run dispatcher
     system('start cmd /K python ' + 'dispatcher.py ' + test_results_path)
@@ -71,13 +71,14 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
     # Run pusher with flag 0 ()
     if test_every_commit:
         post_commit_file = open(repository_path + '.git/hooks/post-commit', 'w')
-        code = open('post_commit_code.txt', 'r').read()
-        post_commit_file.write(code)
+        post_commit_file.write(
+            '#!/bin/sh\npy \"' + path.abspath(getcwd()) + '/run_pusher.py\" \"' +
+            repository_path[:len(repository_path)-1] + '\"')
         post_commit_file.close()
     else:
         if path.isfile(repository_path + '.git/hooks/post-commit'):
             remove(repository_path + '.git/hooks/post-commit')
-        system('start cmd /K python ' + 'pusher.py' + ' 0')
+        system('start cmd /K python ' + 'pusher.py '+ repository_path + ' 0')
 
     # Run test runner('s)
     for n in range(n_test_runners):

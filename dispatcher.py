@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 import socketserver
 import threading
 from socket import error
@@ -173,7 +174,7 @@ if __name__ == "__main__":
 
     # Get folder as command line argument to save test results
     parser = argparse.ArgumentParser()
-    parser.add_argument('test_results_folder', type=int, action='store')
+    parser.add_argument('test_results_folder', type=str, action='store')
     test_results_folder = parser.parse_args().test_results_folder
 
     serve()

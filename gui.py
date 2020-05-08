@@ -18,13 +18,13 @@ class Ui_MainWindow(object):
         ###############
 
         MainWindow.setObjectName('MainWindow')
-        MainWindow.setMinimumSize(760, 220)
+        MainWindow.setMinimumSize(760, 280)
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName('centralwidget')
 
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(80, 10, 600, 180))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(80, 10, 600, 210))
         self.gridLayoutWidget.setObjectName('gridLayoutWidget')
 
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
@@ -37,10 +37,10 @@ class Ui_MainWindow(object):
         self.gridLayout_4 = QtWidgets.QGridLayout()
         self.gridLayout_4.setObjectName('gridLayout_4')
 
-        self.okButton = QtWidgets.QPushButton(self.gridLayoutWidget)
-        self.okButton.setObjectName('okButton')
-        self.okButton.clicked.connect(self.ok_button_callback)
-        self.gridLayout_4.addWidget(self.okButton, 1, 1, 1, 1)
+        #self.okButton = QtWidgets.QPushButton(self.gridLayoutWidget)
+        #self.okButton.setObjectName('okButton')
+        #self.okButton.clicked.connect(self.ok_button_callback)
+        #self.gridLayout_4.addWidget(self.okButton, 1, 1, 1, 1)
 
         self.label_2 = QtWidgets.QLabel(self.gridLayoutWidget)
         self.label_2.setObjectName('label_2')
@@ -48,7 +48,7 @@ class Ui_MainWindow(object):
 
         self.observer_radio_button = QtWidgets.QRadioButton(self.gridLayoutWidget)
         self.observer_radio_button.setObjectName('observer_radio_button')
-        self.gridLayout_4.addWidget(self.observer_radio_button, 3, 0, 1, 2)
+        self.gridLayout_4.addWidget(self.observer_radio_button, 4, 0, 1, 2)
 
         self.textBrowser = QtWidgets.QTextBrowser(self.gridLayoutWidget)
         self.textBrowser.setObjectName('textBrowser')
@@ -64,12 +64,17 @@ class Ui_MainWindow(object):
         self.every_commit_radio_button = QtWidgets.QRadioButton(self.gridLayoutWidget)
         self.every_commit_radio_button.setObjectName('every_commit_radio_button')
         self.every_commit_radio_button.setChecked(True)
-        self.gridLayout_4.addWidget(self.every_commit_radio_button, 2, 0, 1, 2)
+        self.gridLayout_4.addWidget(self.every_commit_radio_button, 3, 0, 1, 2)
 
         self.lineEdit = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit.setObjectName('lineEdit')
         self.lineEdit.setText(r'C:\Users\Greg\Desktop\Projects\CIS\monitoring_repo')
-        self.gridLayout_4.addWidget(self.lineEdit, 1, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.lineEdit, 1, 0, 1, 2)
+
+        self.lineEdit2 = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit2.setObjectName('lineEdit2')
+        self.lineEdit2.setText(r'C:\Users\Greg\Desktop\Projects\CIS\monitoring_repo')
+        self.gridLayout_4.addWidget(self.lineEdit2, 2, 0, 1, 2)
 
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setObjectName('gridLayout_3')
@@ -106,11 +111,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate('MainWindow', 'CI system'))
         MainWindow.setWindowIcon(QtGui.QIcon(_translate('MainWindow', 'ci-icon.png')))
 
-        self.okButton.setText(_translate('MainWindow', 'OK'))
+        #self.okButton.setText(_translate('MainWindow', 'OK'))
         self.label_2.setText(_translate('MainWindow', ' Количество тестирующих модулей'))
         self.observer_radio_button.setText(_translate('MainWindow', 'Тестировать периодически'))
         self.every_commit_radio_button.setText(_translate('MainWindow', 'Тестировать каждый коммит'))
         self.lineEdit.setPlaceholderText(_translate('MainWindow', 'Полный путь к репозиторию'))
+        self.lineEdit2.setPlaceholderText(_translate('MainWindow', 'Путь для сохранения тестов'))
         self.startButton.setText(_translate('MainWindow', 'Запустить систему'))
         self.stopButton.setText(_translate('MainWindow', 'Остановить систему'))
 
@@ -121,7 +127,11 @@ class Ui_MainWindow(object):
         if yes print message
         '''
 
+
+        self.repository_path = self.lineEdit.text()
         if self.repository_path != '':
+            self.textBrowser.setText('Текущий путь к репозиторию: ' + self.repository_path)
+
             try:
                 response = helpers.communicate('localhost', 8888, 'status')
                 if response == 'OK':
@@ -136,15 +146,21 @@ class Ui_MainWindow(object):
 
                     self.n_test_runners = self.spinBox.value()
                     self.test_every_commit = self.every_commit_radio_button.isChecked()
+                    self.test_results_path = self.lineEdit2.text()
 
-                    helpers.start_system(self.repository_path, self.test_every_commit, self.n_test_runners)
+                    helpers.start_system(
+                        self.repository_path,
+                        self.test_results_path,
+                        self.test_every_commit,
+                        self.n_test_runners )
                     self.started = True
                     self.textBrowser.setText('Система запущена')
                 except Exception as e:
                     print(e)
                     self.textBrowser.setText('Что-то пошло не так...')
         else:
-            self.textBrowser.setText('Укажите путь к репозиторию')
+            self.textBrowser.setText('Укажите путь к репозиторию:')
+
 
     def stop_button_callback(self):
         '''
