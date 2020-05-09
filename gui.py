@@ -37,11 +37,6 @@ class Ui_MainWindow(object):
         self.gridLayout_4 = QtWidgets.QGridLayout()
         self.gridLayout_4.setObjectName('gridLayout_4')
 
-        #self.okButton = QtWidgets.QPushButton(self.gridLayoutWidget)
-        #self.okButton.setObjectName('okButton')
-        #self.okButton.clicked.connect(self.ok_button_callback)
-        #self.gridLayout_4.addWidget(self.okButton, 1, 1, 1, 1)
-
         self.label_2 = QtWidgets.QLabel(self.gridLayoutWidget)
         self.label_2.setObjectName('label_2')
         self.gridLayout_4.addWidget(self.label_2, 5, 0, 1, 1)
@@ -68,12 +63,10 @@ class Ui_MainWindow(object):
 
         self.lineEdit = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit.setObjectName('lineEdit')
-        self.lineEdit.setText(r'C:\Users\Greg\Desktop\Projects\CIS\monitoring_repo')
         self.gridLayout_4.addWidget(self.lineEdit, 1, 0, 1, 2)
 
         self.lineEdit2 = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit2.setObjectName('lineEdit2')
-        self.lineEdit2.setText(r'C:\Users\Greg\Desktop\Projects\CIS\monitoring_repo')
         self.gridLayout_4.addWidget(self.lineEdit2, 2, 0, 1, 2)
 
         self.gridLayout_3 = QtWidgets.QGridLayout()
@@ -127,7 +120,6 @@ class Ui_MainWindow(object):
         if yes print message
         '''
 
-
         self.repository_path = self.lineEdit.text()
         if self.repository_path != '':
             self.textBrowser.setText('Текущий путь к репозиторию: ' + self.repository_path)
@@ -172,13 +164,6 @@ class Ui_MainWindow(object):
         if self.started==True and helpers.module_process_ids:
             helpers.kill_all_processes()
             self.started=False
-
-    def ok_button_callback(self):
-        self.repository_path = self.lineEdit.text()
-        if self.repository_path != '':
-            self.textBrowser.setText('Текущий путь к репозиторию: ' + self.repository_path)
-        else:
-            self.textBrowser.setText('Укажите путь к репозиторию:')
 
 
 if __name__ == '__main__':
