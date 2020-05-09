@@ -1,11 +1,12 @@
 if __name__ == '__main__':
     import os
     import argparse
-    #os.system('start cmd /K "cd C:/Users/Greg/Desktop/Projects/CIS/source/ && py pusher.py 1"')
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('pusher_path', type=str, action='store')
     parser.add_argument('repo_path', type=str, action='store')
 
+    args = parser.parse_args()
 
-    os.system('cd C:/Users/Greg/Desktop/Projects/CIS/source/ && py pusher.py ' + parser.parse_args().repo_path +' 1')
+    os.system('cd ' + args.pusher_path + ' && py pusher.py ' + args.repo_path +' 1')
     print('pusher is started, run_pusher is done')

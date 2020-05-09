@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     repo_clone_pusher = repo_path + '/repo_clone_pusher'
     # Waiting time to check repo in seconds
-    schedule = 5
+    schedule = 10
 
 
     # Start

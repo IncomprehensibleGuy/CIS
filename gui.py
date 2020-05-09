@@ -161,15 +161,16 @@ class Ui_MainWindow(object):
         else:
             self.textBrowser.setText('Укажите путь к репозиторию:')
 
-
     def stop_button_callback(self):
         '''
         close every module by pid
         '''
         if path.isfile('ids.txt'):
             remove('ids.txt')
+        if path.isfile('.commit_id'):
+            remove('.commit_id')
         if self.started==True and helpers.module_process_ids:
-            helpers.kill_all()
+            helpers.kill_all_processes()
             self.started=False
 
     def ok_button_callback(self):

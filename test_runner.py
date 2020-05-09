@@ -13,7 +13,7 @@ import helpers
 
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    repo_folder = None
+    test_runner_clone_repo = None
     dispatcher_host = None # Holds the dispatcher server host/port information
     dispatcher_port = None
     last_communication = None # Keeps track of last communication from dispatcher
@@ -59,23 +59,25 @@ class TestHandler(socketserver.BaseRequestHandler):
                 print('running')
                 commit_id = command_groups.group(2)[1:]
                 self.server.busy = True
-                self.run_tests(commit_id, self.server.repo_folder)
+                self.run_tests(commit_id, self.server.test_runner_clone_repo)
                 self.server.busy = False
         else:
             self.request.sendall(b'Invalid command')
 
-    def run_tests(self, commit_id, repo_folder):
+    def run_tests(self, commit_id, test_runner_clone_repo):
         # Update repo
-        subprocess.check_output(['test_runner_script.sh', repo_folder, commit_id], shell=True)
+        subprocess.check_output(['test_runner_script.sh', test_runner_clone_repo, commit_id], shell=True)
 
         result_file = open('results.txt', 'a')
-        result_file.write('='*70)
+        result_file.write('='*70 + '\n')
 
         # Run the tests
-        test_folder = os.path.join(repo_folder, 'tests')  # repo_folder + tests
-        suite = unittest.TestLoader().discover(test_folder)
-        unittest.TextTestRunner(result_file).run(suite)
-
+        test_folder = os.path.join(test_runner_clone_repo, 'tests')  # repo_folder + tests
+        if os.path.exists(test_folder):
+            suite = unittest.TestLoader().discover(test_folder)
+            unittest.TextTestRunner(result_file).run(suite)
+        else:
+            result_file.write('No test folder directory\n')
         result_file.write('='*70 + '\n')
         result_file.close()
 
@@ -89,24 +91,11 @@ class TestHandler(socketserver.BaseRequestHandler):
 
 
 def serve():
-    range_start = 8900
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host',
-                        help='runner\'s host, by default it uses localhost',
-                        default='localhost',
-                        action='store')
-    parser.add_argument('--port',
-                        help=f'runner\'s port, by default it uses values >={range_start}',
-                        action='store')
-    parser.add_argument('--dispatcher-server',
-                        help='dispatcher host:port, by default it uses localhost:8888',
-                        default='localhost:8888',
-                        action='store')
-    parser.add_argument('repo',
-                        metavar='REPO',
-                        type=str,
-                        help='path to the repository this will observe')
+    parser.add_argument('--host', default='localhost', action='store')
+    parser.add_argument('--port', action='store')
+    parser.add_argument('--dispatcher-server', default='localhost:8888', action='store')
+    parser.add_argument('test_runner_clone_repo', type=str)
     args = parser.parse_args()
 
     # Get servers parameters from command line parser
@@ -117,6 +106,7 @@ def serve():
     print(f'Got dispatcher server info - {dispatcher_host}:{dispatcher_port}')
 
     # Create instance of the test_runner server
+    range_start = 8900
     tries = 0
     if not test_runner_port:
         test_runner_port = range_start
@@ -136,7 +126,7 @@ def serve():
     else:
         test_runner_server = ThreadingTCPServer((test_runner_host, test_runner_port), TestHandler)
 
-    test_runner_server.repo_folder = args.repo
+    test_runner_server.test_runner_clone_repo = args.test_runner_clone_repo
     test_runner_server.dispatcher_host = dispatcher_host
     test_runner_server.dispatcher_port = dispatcher_port
     print(f'Test runner serving on {test_runner_host}:{test_runner_port}')

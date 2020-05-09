@@ -1,5 +1,5 @@
-import subprocess
-import time
+from subprocess import check_output, CalledProcessError
+from time import sleep
 from socket import socket, AF_INET, SOCK_STREAM
 from os import system, remove, path, pardir, getpid, getcwd
 
@@ -62,18 +62,23 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
 
     # Create repo clones for pusher and test_runner
     if ( not path.exists(repository_path + 'repo_clone_pusher') ) and \
-            ( not path.exists(repository_path + 'repo_clone_test_runner') ):
-        subprocess.check_output(['clone_repo.sh', repository_path], shell=True)
+        ( not path.exists(repository_path + 'repo_clone_test_runner') ):
+        try:
+            check_output(['clone_repo.sh', repository_path], shell=True)
+        except CalledProcessError as e:
+            raise Exception(f'Could not clone repository. Reason: {e}')
 
     # Run dispatcher
     system('start cmd /K python ' + 'dispatcher.py ' + test_results_path)
 
     # Run pusher with flag 0 ()
     if test_every_commit:
+
+        code = '#!/bin/sh\npy \"' + path.abspath(getcwd()) + '/run_pusher.py\" \"'
+        code += path.abspath(getcwd()) + '\" \"' + repository_path[:len(repository_path)-1] + '\"'
+
         post_commit_file = open(repository_path + '.git/hooks/post-commit', 'w')
-        post_commit_file.write(
-            '#!/bin/sh\npy \"' + path.abspath(getcwd()) + '/run_pusher.py\" \"' +
-            repository_path[:len(repository_path)-1] + '\"')
+        post_commit_file.write(code)
         post_commit_file.close()
     else:
         if path.isfile(repository_path + '.git/hooks/post-commit'):
@@ -84,5 +89,5 @@ def start_system(repository_path:str, test_results_path:str, test_every_commit:b
     for n in range(n_test_runners):
         system('start cmd /K python ' + 'test_runner.py ' + repository_path + 'repo_clone_test_runner')
 
-    time.sleep(2)
+    sleep(2)
     get_all_processes_ids()
